@@ -32,13 +32,13 @@
 ### วิธีที่ 1: ติดตั้งผ่าน Agent Skills CLI (เร็วที่สุด)
 สำหรับผู้ใช้ที่มีสิทธิ์เข้าถึง Private Repository:
 ```bash
-npx skills add ccs-wichitchai/system-development --skill system-development --global --yes
+npx skills add SnakeEyes288/system-development --skill system-development --global --yes
 ```
 
 ### วิธีที่ 2: ติดตั้งผ่าน Git Clone + Auto-Installer (รองรับทุกระบบปฏิบัติการ)
 ```bash
 # 1. Clone repository ลงในเครื่อง
-git clone git@github.com:ccs-wichitchai/system-development.git
+git clone https://github.com/SnakeEyes288/system-development.git
 cd system-development
 
 # 2. รันสคริปต์ติดตั้งอัตโนมัติ (จะคัดลอกไปยังโฟลเดอร์สกิลของ Agent ทุกค่ายในเครื่อง)
