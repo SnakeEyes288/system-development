@@ -93,8 +93,8 @@ flowchart TD
 
 1.  **Gate G1 (ขั้นตอนที่ 2.5):** หยุดรอให้ผู้ใช้ตรวจและอนุมัติ Spec และ Architecture ก่อนไปต่อ
     *   คำสั่งบันทึก: `python scripts/pipeline_gate.py approve --gate G1 --evidence "ผู้ใช้อนุมัติ Spec ในแชทเมื่อวันที่ ..."`
-2.  **Gate G2 (ขั้นตอนที่ 3.0):** หยุดรอให้ผู้ใช้เลือกแบบดีไซน์ (เช่น เลือกแบบ A หรือ B)
-    *   คำสั่งบันทึก: `python scripts/pipeline_gate.py approve --gate G2 --evidence "ผู้ใช้เลือก Theme B ภาษาไทย" --design "Theme B"`
+2.  **Gate G2 (ขั้นตอนที่ 3.0):** หยุดรอให้ผู้ใช้เลือกแบบดีไซน์จากตัวเลือกหลากหลายใน preview.html (เช่น เลือก Theme A, B, C หรือ D)
+    *   คำสั่งบันทึก: `python scripts/pipeline_gate.py approve --gate G2 --evidence "ผู้ใช้เลือก Theme C ภาษาไทย" --design "Theme C"`
 3.  **Gate G3 (ขั้นตอนที่ 6.5):** คณะผู้ตรวจสอบทั้ง 6 บทบาทลงมติ Approved ใน `REVIEW_GATE.md`
     *   คำสั่งบันทึก: `python scripts/pipeline_gate.py approve --gate G3 --evidence "ผ่านการตรวจรับครบ 6 บทบาทใน REVIEW_GATE.md"`
 
@@ -154,18 +154,20 @@ flowchart TD
     *   Agent หลักจะสวมบทบาท Lead UI/UX Designer ทันที (**Inline Deep Execution**) ดึงฐานความรู้ของทั้งสองสกิลมาประมวลผลและสร้างชิ้นงานด้วยมาตรฐานระดับโปรเดียวกัน 100%
 
 #### 2. ข้อกำหนดของ Interactive Prototype (`preview.html`)
-*   **Live Theme Switcher (ปุ่มสลับ 2 ธีมในหน้าเดียว):**
-    *   ต้องมีแถบควบคุม (Theme Toolbar) ด้านบนสุด ให้ผู้ใช้คลิกสลับระหว่าง **Theme A** (Anchor แบบที่ 1 เช่น Swiss หรือ Industrial) และ **Theme B** (Anchor แบบที่ 2 เช่น Aurora หรือ Organic) ได้ทันทีในเบราว์เซอร์
-    *   การสลับธีมต้องควบคุมผ่านการเปลี่ยนคลาสหรือสลับชุด CSS Variables (3-Tier Design Tokens) เพื่อให้เห็นความแตกต่างของอารมณ์และโทนสีอย่างชัดเจน
+*   **Multi-Theme Switcher (ปุ่มสลับธีมหลากหลาย ขั้นต่ำ 3-4 แบบในหน้าเดียว):**
+    *   **ห้ามทำมาแค่ 2 แบบเด็ดขาด:** ต้องมีแถบควบคุม (Theme Toolbar) ด้านบนสุด ให้ผู้ใช้คลิกสลับระหว่างแนวทางการออกแบบหลากหลายอย่างน้อย **3 ถึง 4 ธีม (Theme A, Theme B, Theme C, Theme D...)** ได้ทันทีในเบราว์เซอร์
+    *   แต่ละธีมต้องดึงจุดเด่นจากดินแดนศิลปะที่แตกต่างกัน (Distinct Aesthetic Anchors เช่น Swiss, Aurora, Industrial, Organic) พร้อมคู่สี (Product Palette) และโทนอารมณ์ที่แตกต่างกันอย่างชัดเจน เพื่อให้ผู้ใช้สัมผัสตัวเลือกที่หลากหลายและรอบด้าน
+    *   การสลับธีมต้องควบคุมผ่านการเปลี่ยน Data Attribute หรือคลาส (เช่น `data-theme="theme-a"`, `data-theme="theme-b"`, ...) ซึ่งสลับชุด CSS Variables (3-Tier Design Tokens) ทั้งหน้าจออย่างลื่นไหล
 *   **Fidelity & Real Components:**
     *   จำลองคอมโพเนนต์หลักที่ตรงตาม Use Case ใน Spec (Hero/Masthead, Data Table หรือ Interactive Cards, Form Inputs, Filter controls, Modal/Dialog mock)
     *   มี Interactive States ครบทั้ง Default, Hover, Active, Focus-visible, และ Disabled
     *   เป็น Responsive Design ที่มี Meta Viewport และปุ่มสัมผัสไม่ต่ำกว่า 44x44px บน Mobile
 
 #### 3. เอกสารสถาปัตยกรรมดีไซน์ (`.pipeline/DESIGN_SYSTEM.md`)
-*   บันทึกสเปกของ Design System ที่สร้างขึ้นอย่างเป็นระบบ:
+*   บันทึกสเปกของ Design System ที่สร้างขึ้นอย่างเป็นระบบสำหรับทุกธีมที่มีให้เลือก:
+    *   **Theme Specifications:** สรุป Anchor, อัตลักษณ์, และชุดสีของทุกธีม (Theme A, B, C, D...)
     *   **Primitive Tokens:** ชุดสีดิบ, ฟอนต์หลัก/ฟอนต์รอง, สเกล Spacing (ฐาน 4px/8px)
-    *   **Semantic Tokens:** การแมปสีพื้นหลัง, ตัวอักษร, ขอบ, และสีแจ้งเตือนตามบริบท
+    *   **Semantic Tokens:** การแมปสีพื้นหลัง, ตัวอักษร, ขอบ, และสีแจ้งเตือนตามบริบทของแต่ละธีม
     *   **Component Tokens:** ตัวแปรเฉพาะของปุ่ม, การ์ด, อินพุต
     *   **Anti-Patterns Avoided:** สรุปข้อผิดพลาดทาง UX ที่ได้รับการป้องกันตามหลักการ
 
@@ -178,13 +180,12 @@ flowchart TD
 
 #### 5. รายงานการตรวจรับและ Gate G2 Protocol
 *   เมื่อสร้าง `preview.html` และ `.pipeline/DESIGN_SYSTEM.md` เสร็จสิ้น **Agent ต้องพิมพ์รายงาน `🎨 Visual Direction & Design System Audit Report` ในแชทเสมอ** ระบุ:
-    *   รายละเอียด Theme A (Anchor, Differentiator, สีและฟอนต์)
-    *   รายละเอียด Theme B (Anchor, Differentiator, สีและฟอนต์)
+    *   รายละเอียดครบทุกธีมที่มีให้เลือก (Theme A, B, C, D...: Anchor, Differentiator, สีและฟอนต์)
     *   ผลตรวจ Content Discipline และ Accessibility (WCAG AA Contrast)
-*   **หยุดรอการอนุมัติ Gate G2 จากผู้ใช้:** ให้ผู้ใช้เปิดทดสอบ `preview.html` ในเบราว์เซอร์ แล้วพิมพ์เลือกธีมที่ต้องการในแชท
+*   **หยุดรอการอนุมัติ Gate G2 จากผู้ใช้:** ให้ผู้ใช้เปิดทดสอบ `preview.html` ในเบราว์เซอร์ แล้วคลิกสลับดูทุกธีม จากนั้นพิมพ์เลือกธีมที่ต้องการในแชท
 *   บันทึกการอนุมัติ:
     ```bash
-    python scripts/pipeline_gate.py approve --gate G2 --evidence "ผู้ใช้เลือก Theme A จากการทดสอบ preview.html" --design "Theme A"
+    python scripts/pipeline_gate.py approve --gate G2 --evidence "ผู้ใช้เลือก Theme C จากการทดสอบ preview.html" --design "Theme C"
     ```
 
 ---

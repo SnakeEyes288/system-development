@@ -98,9 +98,11 @@
   - *Component Tokens:* [ค่าตัวแปรเฉพาะปุ่ม, การ์ด, อินพุต]
 - **วินัยด้านเนื้อหา (Content Discipline Check):** ผ่านเกณฑ์ 100% (ไร้ข้อมูล telemetry ปลอม, ไร้ subtitle ขยะ, ใช้ copy มาตรฐาน, ใช้ Inline SVG แทน Emoji, และตัดสำนวน AI Cliché ทั้งหมด)
 - **การเข้าถึงและสถานะ (Accessibility & States):** คอนทราสต์ผ่าน WCAG AA ขั้นต่ำ 4.5:1, มีสถานะ Hover/Active/Focus-visible ครบทุกคอนโทรล, รองรับ Mobile Touch Target 44x44px
-- **2 แนวทางการออกแบบสำหรับเลือกใช้งาน:**
-  - **แนวทาง A ([ชื่อแนวทาง/Anchor]):** [อธิบายอารมณ์ โทนสี และกลุ่มผู้ใช้งานเป้าหมาย]
-  - **แนวทาง B ([ชื่อแนวทาง/Anchor]):** [อธิบายอารมณ์ โทนสี และกลุ่มผู้ใช้งานเป้าหมาย]
+- **ตัวเลือกแนวทางการออกแบบสำหรับเลือกใช้งานใน preview.html (ขั้นต่ำ 3-4 แบบ):**
+  - **แนวทาง A ([ชื่อแนวทาง/Anchor เช่น Swiss Clean]):** [อธิบายอารมณ์ โทนสี และกลุ่มผู้ใช้งานเป้าหมาย]
+  - **แนวทาง B ([ชื่อแนวทาง/Anchor เช่น Aurora Modern]):** [อธิบายอารมณ์ โทนสี และกลุ่มผู้ใช้งานเป้าหมาย]
+  - **แนวทาง C ([ชื่อแนวทาง/Anchor เช่น Industrial Dark]):** [อธิบายอารมณ์ โทนสี และกลุ่มผู้ใช้งานเป้าหมาย]
+  - **แนวทาง D ([ชื่อแนวทาง/Anchor เช่น Organic Warm]):** [อธิบายอารมณ์ โทนสี และกลุ่มผู้ใช้งานเป้าหมาย]
 ```
 
 ---
@@ -110,12 +112,16 @@
 ```markdown
 # Design System Architecture
 
-## 1. Visual Direction & Anchor Selection
+## 1. Visual Direction & Multi-Theme Selection
 - **Product Type & Audience:** [e.g. B2B Analytics Dashboard for Engineers]
-- **Theme A:** [Anchor name e.g. Industrial]
-  - *Differentiator:* [e.g. Single semantic signal green, tabular numeric displays]
-- **Theme B:** [Anchor name e.g. Aurora]
+- **Theme A ([Anchor name e.g. Swiss Clean]):**
+  - *Differentiator:* [e.g. Strict grid layout, crisp high-contrast typography]
+- **Theme B ([Anchor name e.g. Aurora Modern]):**
   - *Differentiator:* [e.g. Deep dark gradient mesh with glassmorphism surface]
+- **Theme C ([Anchor name e.g. Industrial Technical]):**
+  - *Differentiator:* [e.g. Monospace data grid, semantic signal status accents]
+- **Theme D ([Anchor name e.g. Organic Soft]):**
+  - *Differentiator:* [e.g. Warm neutral surface, rounded micro-interactions]
 
 ## 2. 3-Tier Design Tokens
 ### Tier 1: Primitive Tokens

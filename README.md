@@ -17,7 +17,7 @@
 4. **Zero-Docker Dev Policy**:
    - แยก Domain ด้วย Repository/Adapter Pattern พร้อม Mock Adapter ในตัว รันเทสท์ในเครื่องได้ 100% Offline ไม่ต้องเปิด Docker
 5. **UI Prototype Engine & Design System (frontend-design + ui-ux-pro-max)**:
-   - ออกแบบ UI Prototype (`preview.html`) ที่มี Live Theme Switcher สลับ 2 ธีมในหน้าเดียว พร้อมสร้าง `.pipeline/DESIGN_SYSTEM.md` ผ่านการ Explicit Delegation ไปยัง `frontend-design` และ `ui-ux-pro-max` (หรือรัน Inline Deep Execution อัตโนมัติ) เพื่อคุณภาพงานระดับโปร ปราศจาก AI Slop 100%
+   - ออกแบบ UI Prototype (`preview.html`) ที่มี Multi-Theme Switcher ให้คลิกสลับเปรียบเทียบในหน้าเดียวอย่างน้อย 3 ถึง 4 ธีม (Theme A, B, C, D...) พร้อมสร้าง `.pipeline/DESIGN_SYSTEM.md` ผ่านการ Explicit Delegation ไปยัง `frontend-design` และ `ui-ux-pro-max` (หรือรัน Inline Deep Execution อัตโนมัติ) เพื่อคุณภาพงานระดับโปร ปราศจาก AI Slop 100%
 6. **OWASP Security Scanner (`scripts/security_audit.py`)**:
    - สแกนหา Hardcoded Secrets และช่องโหว่ OWASP Top 10 พร้อมระบบ Redaction ซ่อนรหัสผ่านในผลรายงาน
 7. **Production Verification (`scripts/verify_delivery.py`)**:
