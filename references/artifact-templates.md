@@ -10,17 +10,22 @@
 
 ```json
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "project_name": "earth-climate-monitor",
   "current_step": "3.0",
   "gates": {
     "G1": {
       "status": "APPROVED",
+      "revision": "spec-v2",
+      "subject": null,
+      "approver": "Project owner",
       "evidence": "User approved Architecture and ADR-001 to ADR-004 in chat 2026-11-12",
       "updated_at": "2026-11-12T13:08:25Z"
     },
     "G2": {
       "status": "PENDING",
+      "revision": "prototype-v1",
+      "subject": null,
       "evidence": null,
       "updated_at": "2026-11-12T13:10:30Z"
     },
@@ -30,7 +35,7 @@
       "updated_at": "2026-11-12T13:10:30Z"
     }
   },
-  "selected_design": "Theme B: Obsidian Minimal Luxury",
+  "selected_design": null,
   "history": [
     {
       "action": "INIT",
@@ -41,6 +46,10 @@
     {
       "action": "APPROVE_GATE",
       "gate": "G1",
+      "revision": "spec-v2",
+      "subject": null,
+      "approver": "Project owner",
+      "design": null,
       "evidence": "User approved Architecture and ADR-001 to ADR-004 in chat",
       "timestamp": "2026-11-12T13:08:25Z"
     }
@@ -52,8 +61,10 @@
 - **สถานะของ Gate ที่รองรับ:**
   - `NOT_REQUESTED`: ยังมาไม่ถึง Gate นี้
   - `PENDING`: กำลังหยุดรอคำตัดสินใจและหลักฐานอนุมัติจากผู้ใช้
-  - `APPROVED`: ได้รับการอนุมัติอย่างเป็นทางการจากผู้ใช้ พร้อมบันทึกข้อความหลักฐานในฟิลด์ `evidence`
-  - `WAIVED`: ได้รับการยกเว้นขั้นตอนอย่างมีเหตุผลทางเทคนิค (เช่น งาน Backend/CLI ไม่มี UI จึงยกเว้น G2)
+  - `APPROVED`: บันทึกคำอนุมัติที่ระบุ `revision`, `approver` และ `evidence`
+  - `WAIVED`: ยกเว้นเฉพาะ G2 โดยระบุรุ่นของขอบเขตและเหตุผล เช่น งาน Backend/CLI ไม่มี UI
+
+เมื่อใช้ `--subject` ฟิลด์ `subject` เป็นพาธของไฟล์ในโปรเจกต์ และ `revision` เป็น SHA-256 ของไฟล์นั้น `status` จะแสดง `STALE` เมื่อผลเดิมใช้ไม่ได้กับรุ่นปัจจุบัน การเปิดตรวจใหม่บันทึกคำตัดสินเดิมไว้ใน `history`
 
 ---
 

@@ -1,19 +1,13 @@
 #!/usr/bin/env python3
-"""
-Production Release & Deliverable Verification Tool (verify_delivery.py)
+"""Verify project files and publish a checked, allowlisted release bundle."""
 
-Verifies project readiness for production release:
-1. Validates build synchronization (e.g. `dist/` vs `src/` or `preview.html` vs entry points).
-2. Verifies UI Design System & Content Discipline standards (semantic SVG icons, accessible metadata, contrast).
-3. Verifies repository portability (executable scripts in package.json, valid entry points).
-4. Supports `--export-release <dir>` to package a clean release bundle into a designated folder
-   without altering or deleting development history or audit logs.
-"""
 import argparse
 import os
 import re
 import shutil
 import sys
+import tempfile
+from pathlib import Path
 
 EMOJI_PATTERN = re.compile(
     r"[\U0001F300-\U0001F64F\U0001F680-\U0001F6FF\U0001F900-\U0001F9FF\U00002702-\U000027B0\U000024C2-\U0001F251]"
@@ -27,7 +21,7 @@ def check_craft_floor(project_dir: str) -> list[str]:
     issues = []
     # Check HTML files for Craft-Floor standards
     for root, dirs, files in os.walk(project_dir):
-        dirs[:] = [d for d in dirs if d not in DEFAULT_IGNORE_DIRS]
+        dirs[:] = [d for d in dirs if d not in DEFAULT_IGNORE_DIRS and not d.startswith(".release-")]
         for f in files:
             if f.endswith((".html", ".htm", ".vue", ".jsx", ".tsx")):
                 fpath = os.path.join(root, f)
@@ -35,7 +29,7 @@ def check_craft_floor(project_dir: str) -> list[str]:
                 try:
                     with open(fpath, "r", encoding="utf-8", errors="ignore") as fp:
                         content = fp.read()
-                        
+
                         # Check 1: Emoji inside buttons or interactive tags
                         button_matches = re.findall(r"<button[^>]*>(.*?)</button>", content, re.DOTALL | re.IGNORECASE)
                         for b_text in button_matches:
@@ -69,59 +63,139 @@ def check_package_portability(project_dir: str) -> list[str]:
             issues.append(f"[Portability] Invalid package.json: {e}")
     return issues
 
-def export_release_bundle(project_dir: str, export_dir: str) -> int:
-    export_dir = os.path.abspath(export_dir)
-    project_dir = os.path.abspath(project_dir)
+DEFAULT_MANIFEST = "release-files.txt"
+ENV_TEMPLATES = {".env.example", ".env.sample", ".env.template"}
+EXCLUDED_NAMES = DEFAULT_IGNORE_DIRS | {
+    ".ssh", ".gnupg", ".aws", ".azure", ".vscode", ".idea", ".npmrc", ".pypirc",
+    ".netrc", "credentials.json", "secrets.json", "id_rsa", "id_ed25519",
+}
+EXCLUDED_SUFFIXES = (".pyc", ".tmp", ".key", ".pem", ".pfx", ".p12", ".jks")
 
-    if os.path.exists(export_dir):
-        print(f"ERROR: Export destination `{export_dir}` already exists. Choose an empty directory.", file=sys.stderr)
-        return 1
 
-    print(f"Packaging clean release bundle to `{export_dir}`...")
-    exclude_patterns = shutil.ignore_patterns(
-        ".git*", "node_modules", ".pipeline", "*.pyc", "__pycache__", ".vscode", ".idea", "*.tmp"
+def excluded_component(component: str) -> bool:
+    name = component.casefold()
+    if name in ENV_TEMPLATES:
+        return False
+    return (
+        name in EXCLUDED_NAMES
+        or name.startswith((".git", ".env.", ".release-"))
+        or name == ".env"
+        or name.endswith(EXCLUDED_SUFFIXES)
     )
 
+
+def release_files(project: Path, manifest: Path) -> list[Path]:
+    files = []
+    seen = set()
+    for line_number, line in enumerate(manifest.read_text(encoding="utf-8-sig").splitlines(), 1):
+        entry = line.strip()
+        if not entry or entry.startswith("#"):
+            continue
+        parts = entry.split("/")
+        if any(
+            part in ("", ".", "..") or part.endswith((".", " "))
+            or any(character in part for character in '\\:*?"<>|')
+            for part in parts
+        ):
+            raise ValueError(f"Manifest line {line_number}: expected an exact project-relative file path.")
+        if any(excluded_component(part) for part in parts):
+            raise ValueError(f"Manifest line {line_number}: excluded file or directory `{entry}`.")
+        if entry.casefold() in seen:
+            raise ValueError(f"Manifest line {line_number}: duplicate path `{entry}`.")
+
+        source = project.joinpath(*parts)
+        if source.resolve(strict=True) != source or not source.is_file():
+            raise ValueError(f"Manifest line {line_number}: `{entry}` must be a regular file without links.")
+        files.append(source.relative_to(project))
+        seen.add(entry.casefold())
+
+    if not files:
+        raise ValueError("Release manifest must list at least one file.")
+    return files
+
+
+def verification_issues(directory: Path) -> list[str]:
+    return check_craft_floor(str(directory)) + check_package_portability(str(directory))
+
+
+def report_issues(issues: list[str], scope: str) -> None:
+    print(f"{scope}: {len(issues)} issue(s) to fix before release:", file=sys.stderr)
+    for issue in issues:
+        print(f"- {issue}", file=sys.stderr)
+
+
+def publish_bundle(bundle: Path, destination: Path) -> None:
+    if os.name == "nt":
+        bundle.rename(destination)
+        return
+
+    # Reserve the name so concurrent publishers cannot replace an existing directory.
+    destination.mkdir()
     try:
-        shutil.copytree(project_dir, export_dir, ignore=exclude_patterns)
-        print(f"SUCCESS: Release bundle exported cleanly to `{export_dir}`.")
+        bundle.replace(destination)
+    except OSError:
+        destination.rmdir()
+        raise
+
+
+def export_release_bundle(project: Path, destination: Path, manifest: Path) -> int:
+    if os.path.lexists(destination):
+        raise FileExistsError(f"Export destination already exists: `{destination}`.")
+
+    files = release_files(project, manifest)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix=".release-", dir=destination.parent) as temp:
+        bundle = Path(temp) / "bundle"
+        bundle.mkdir()
+        for relative in files:
+            target = bundle / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(project / relative, target)
+
+        issues = verification_issues(bundle)
+        if issues:
+            report_issues(issues, "Staged release verification failed")
+            return 2
+
+        publish_bundle(bundle, destination)
+
+    print(f"SUCCESS: Exported {len(files)} verified file(s) to `{destination}`.")
+    return 0
+
+
+def run_verification(
+    project_dir: str, export_dir: str | None = None, manifest_path: str = DEFAULT_MANIFEST
+) -> int:
+    try:
+        project = Path(project_dir).resolve(strict=True)
+        if not project.is_dir():
+            raise ValueError("Project path must be a directory.")
+
+        issues = verification_issues(project)
+        if issues:
+            report_issues(issues, "Project verification failed")
+            return 2
+        if export_dir is not None:
+            path = Path(export_dir).absolute()
+            destination = path.parent.resolve() / path.name
+            return export_release_bundle(project, destination, project / manifest_path)
+
+        print("PASS: Project passed the content, viewport, and package metadata checks.")
         return 0
-    except Exception as e:
-        print(f"ERROR: Failed to export bundle: {e}", file=sys.stderr)
+    except (OSError, RuntimeError, ValueError) as error:
+        print(f"ERROR: {error}", file=sys.stderr)
         return 1
 
-def run_verification(project_dir: str, export_dir: str | None = None) -> int:
-    project_dir = os.path.abspath(project_dir)
-    print("=" * 65)
-    print(f" Production Deliverable Verification: {project_dir}")
-    print("=" * 65)
 
-    cf_issues = check_craft_floor(project_dir)
-    pkg_issues = check_package_portability(project_dir)
-
-    all_issues = cf_issues + pkg_issues
-
-    if all_issues:
-        print(f" Found {len(all_issues)} issue(s) that should be addressed before release:")
-        for idx, iss in enumerate(all_issues, 1):
-            print(f"  {idx}. {iss}")
-        print("=" * 65)
-    else:
-        print(" PASS: Deliverable passes all Design System, Content Discipline, and Portability checks.")
-        print("=" * 65)
-
-    if export_dir:
-        return export_release_bundle(project_dir, export_dir)
-
-    return 2 if all_issues else 0
-
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Production Deliverable Verification Tool")
     parser.add_argument("project_dir", nargs="?", default=".", help="Project root directory")
-    parser.add_argument("--export-release", default=None, help="Export clean production bundle into target directory")
+    parser.add_argument("--export-release", metavar="DIR", help="Publish a checked bundle to a new directory")
+    parser.add_argument("--manifest", metavar="FILE", default=DEFAULT_MANIFEST,
+                        help=f"File allowlist for export (default: {DEFAULT_MANIFEST} in the project root)")
     args = parser.parse_args()
+    sys.exit(run_verification(args.project_dir, args.export_release, args.manifest))
 
-    sys.exit(run_verification(args.project_dir, args.export_release))
 
 if __name__ == "__main__":
     main()

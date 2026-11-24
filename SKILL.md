@@ -81,22 +81,37 @@ flowchart TD
 - **สำหรับงานสร้างระบบใหม่ หรือฟีเจอร์ขนาดใหญ่ (New System / Major Feature):** ดำเนินการครบทุกขั้นตอน 1.0 ถึง 7.0 และเคารพ Gate G1, G2, G3 อย่างเคร่งครัด
 - **สำหรับงานแก้บั๊กเล็ก หรืองานปรับแต่งเฉพาะจุด (Small Bug Fix / Minor Task):**
   - อนุญาตให้ทำแบบย่อ: ประเมินงาน (Step 1-2) ➔ วาง Test (Step 3.5) ➔ แก้ไขโค้ด (Step 4.0) ➔ รันเทสท์ยืนยัน (Step 5.0) ➔ ตรวจความปลอดภัย (Step 6.0) ➔ สรุปงาน (Step 7.0)
-  - สำหรับ Gate ที่ไม่เกี่ยวข้อง (เช่น งานไม่มี UI) ให้ใช้คำสั่ง `waive` พร้อมระบุเหตุผล เช่น `python scripts/pipeline_gate.py waive --gate G2 --evidence "Backend-only fix: no UI changes"`
+  - สำหรับงานที่ไม่มี UI ให้บันทึกการยกเว้น G2 ตามรุ่นของขอบเขตงาน เช่น
+
+    ```bash
+    python scripts/pipeline_gate.py request --gate G2 --revision backend-scope-v1
+    python scripts/pipeline_gate.py waive --gate G2 --revision backend-scope-v1 --evidence "Backend-only fix: no UI changes"
+    ```
 
 ---
 
-### 2. นโยบาย Gate Locks และหลักฐานการอนุมัติ (Evidence-Driven Gates) 🔒
+### 2. การขออนุมัติและตรวจความสดของหลักฐาน (Evidence-Driven Gates)
 
-> [!IMPORTANT]
-> **การอนุมัติ Gate ต้องมาจากมนุษย์จริงเสมอ (Human Decision with Evidence):**
-> Agent ห้ามทึกทักหรือคิดแทนผู้ใช้เด็ดขาด เมื่อถึง Gate ต้องหยุดรอและบันทึกหลักฐานจริงที่ผู้ใช้พิมพ์ในแชท:
+1. **G1** อนุมัติสเปกและสถาปัตยกรรมก่อนผ่านขั้น 2.5
+2. **G2** อนุมัติต้นแบบและทิศทาง UI ก่อนผ่านขั้น 3.0 ใช้การยกเว้นพร้อมเหตุผลสำหรับขอบเขตที่ไม่มี UI
+3. **G3** บันทึกการอนุมัติจากผู้รับผิดชอบตรวจรับตาม `REVIEW_GATE.md` สำหรับอาร์ติแฟกต์ที่จะส่งมอบ ก่อนเข้าขั้น 7.0
 
-1.  **Gate G1 (ขั้นตอนที่ 2.5):** หยุดรอให้ผู้ใช้ตรวจและอนุมัติ Spec และ Architecture ก่อนไปต่อ
-    *   คำสั่งบันทึก: `python scripts/pipeline_gate.py approve --gate G1 --evidence "ผู้ใช้อนุมัติ Spec ในแชทเมื่อวันที่ ..."`
-2.  **Gate G2 (ขั้นตอนที่ 3.0):** หยุดรอให้ผู้ใช้เลือกแบบดีไซน์จากตัวเลือกหลากหลายใน preview.html (เช่น เลือก Theme A, B, C หรือ D)
-    *   คำสั่งบันทึก: `python scripts/pipeline_gate.py approve --gate G2 --evidence "ผู้ใช้เลือก Theme C ภาษาไทย" --design "Theme C"`
-3.  **Gate G3 (ขั้นตอนที่ 6.5):** คณะผู้ตรวจสอบทั้ง 6 บทบาทลงมติ Approved ใน `REVIEW_GATE.md`
-    *   คำสั่งบันทึก: `python scripts/pipeline_gate.py approve --gate G3 --evidence "ผ่านการตรวจรับครบ 6 บทบาทใน REVIEW_GATE.md"`
+ขอคำตัดสินสำหรับรุ่นที่ระบุด้วย `request --subject` โดยให้พาธไฟล์สัมพัทธ์กับโปรเจกต์ CLI จะคำนวณ SHA-256 ให้ หรือใช้ `request --revision` เมื่อมีรหัสอ้างอิงคงที่จากระบบอื่น เช่น commit SHA หรือ digest ของอาร์ติแฟกต์ จดรุ่นที่แสดงในผล `request` หรือ `status` แล้วใช้รุ่นนั้นตอนบันทึกคำตัดสิน ตัวอย่างคำสั่ง G1
+
+```bash
+python scripts/pipeline_gate.py request --gate G1 --subject docs/SPEC.md
+python scripts/pipeline_gate.py approve --gate G1 --revision "REVISION_FROM_REQUEST" --approver "Project owner" --evidence "Approval reference for this spec revision"
+
+# ตัวอย่าง G3 เมื่อระบบ build ระบุ digest ของอาร์ติแฟกต์
+python scripts/pipeline_gate.py request --gate G3 --revision "sha256:ARTIFACT_DIGEST"
+python scripts/pipeline_gate.py approve --gate G3 --revision "sha256:ARTIFACT_DIGEST" --approver "Release owner" --evidence "Sign-off reference for this artifact"
+```
+
+ใช้ `--approver` และ `--evidence` จากการอนุมัติจริง สคริปต์ตรวจว่ารุ่นตรงกับคำขอ และบันทึกผู้อนุมัติกับแหล่งอ้างอิง ส่วนความถูกต้องของคำอนุมัติให้ยืนยันจากแหล่งต้นทาง
+
+เมื่อไฟล์ที่ผูกไว้เปลี่ยนหรือหาย `status` จะแสดง `STALE` และผลเดิมจะผ่าน `advance` หรือ `validate` ในขั้นที่ต้องใช้ Gate นั้นไม่ได้ ให้รัน `request` อีกครั้งเพื่อเปิดตรวจรุ่นใหม่เฉพาะ Gate ที่ได้รับผล สำหรับรุ่นภายนอก ให้เปิดคำขอด้วยรหัสรุ่นใหม่ทันทีที่เรื่องที่อนุมัติมีการเปลี่ยนแปลง ก่อนส่งมอบให้รัน `validate` กับ checkpoint ของโปรเจกต์ปัจจุบัน
+
+Checkpoint schema 2 ยังอ่านได้และเก็บประวัติเดิมไว้ ให้เปิดคำขอใหม่สำหรับรายการเดิมที่ขาดรุ่นหรือผู้อนุมัติ การบันทึกคำขอจะอัปเดตเป็น schema 3
 
 ---
 
@@ -185,7 +200,8 @@ flowchart TD
 *   **หยุดรอการอนุมัติ Gate G2 จากผู้ใช้:** ให้ผู้ใช้เปิดทดสอบ `preview.html` ในเบราว์เซอร์ แล้วคลิกสลับดูทุกธีม จากนั้นพิมพ์เลือกธีมที่ต้องการในแชท
 *   บันทึกการอนุมัติ:
     ```bash
-    python scripts/pipeline_gate.py approve --gate G2 --evidence "ผู้ใช้เลือก Theme C จากการทดสอบ preview.html" --design "Theme C"
+    python scripts/pipeline_gate.py request --gate G2 --subject preview.html
+    python scripts/pipeline_gate.py approve --gate G2 --revision "REVISION_FROM_REQUEST" --approver "Design owner" --evidence "Approval reference for the selected prototype" --design "Theme C"
     ```
 
 ---
@@ -204,10 +220,20 @@ flowchart TD
   python scripts/security_audit.py .
   python scripts/verify_delivery.py .
   ```
-- หากต้องการ Export เฉพาะซอร์สโค้ดสำหรับส่งมอบงานโดยแยกโฟลเดอร์สะอาด สามารถสั่ง:
+- เมื่อต้องส่งออกแพ็กเกจ ให้สร้าง `release-files.txt` แบบ UTF-8 ใน root ของโปรเจกต์ ใช้พาธสัมพัทธ์จาก root ทีละไฟล์ ใช้ `/` เป็นตัวคั่น และใช้ชื่อไฟล์โดยตรง ตัวอย่าง
+
+  ```text
+  README.md
+  dist/index.html
+  dist/assets/app.js
+  .env.example
+  ```
+
   ```bash
   python scripts/verify_delivery.py . --export-release ./release-package
   ```
+
+  ใช้ `--manifest FILE` เมื่อเก็บรายการไว้ที่อื่น โดยพาธสัมพัทธ์ของ manifest อิงโฟลเดอร์โปรเจกต์ สคริปต์ยอมรับบรรทัดว่างและคอมเมนต์ที่ขึ้นต้นด้วย `#` และปฏิเสธพาธออกนอกโปรเจกต์ ลิงก์ `.env` ไฟล์ credential ที่รู้จัก และไฟล์สถานะภายใน แพ็กเกจถูกคัดลอกจากรายการนี้ไปตรวจในโฟลเดอร์ชั่วคราว และเผยแพร่ไปยังปลายทางใหม่เมื่อการตรวจโปรเจกต์และแพ็กเกจผ่าน
 
 ---
 
