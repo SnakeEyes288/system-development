@@ -16,8 +16,8 @@
    - งานแก้บั๊กเล็กสามารถทำแบบย่อและใช้คำสั่ง `waive` สำหรับ G2 เมื่อขอบเขตงานรุ่นนั้นไม่มี UI
 4. **Zero-Docker Dev Policy**:
    - แยก Domain ด้วย Repository/Adapter Pattern พร้อม Mock Adapter ในตัว รันเทสท์ในเครื่องได้ 100% Offline ไม่ต้องเปิด Docker
-5. **UI Prototype Engine & Design System (frontend-design + ui-ux-pro-max)**:
-   - ออกแบบ UI Prototype (`preview.html`) ที่มี Multi-Theme Switcher ให้คลิกสลับเปรียบเทียบในหน้าเดียวอย่างน้อย 3 ถึง 4 ธีม (Theme A, B, C, D...) พร้อมสร้าง `.pipeline/DESIGN_SYSTEM.md` ผ่านการ Explicit Delegation ไปยัง `frontend-design` และ `ui-ux-pro-max` (หรือรัน Inline Deep Execution อัตโนมัติ) เพื่อคุณภาพงานระดับโปร ปราศจาก AI Slop 100%
+5. **การออกแบบและพัฒนา UI**
+   - ใช้ `frontend-design` และ `ui-ux-pro-max` ในขั้นทำต้นแบบและแก้ UI จริง พร้อมบันทึกสิ่งที่นำไปใช้ใน `.pipeline/DESIGN_SYSTEM.md` ดู [วิธีติดตั้งและใช้ทั้งสอง Skill](references/ui-workflow.md)
 6. **OWASP Security Scanner (`scripts/security_audit.py`)**:
    - สแกนหา Hardcoded Secrets และช่องโหว่ OWASP Top 10 พร้อมระบบ Redaction ซ่อนรหัสผ่านในผลรายงาน
 7. **Production Verification (`scripts/verify_delivery.py`)**:

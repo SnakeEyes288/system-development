@@ -9,10 +9,7 @@ description: มาตรฐานการพัฒนาระบบซอฟ�
 ขับเคลื่อนกระบวนการพัฒนาระบบซอฟต์แวร์ตั้งแต่เริ่มต้นจนถึงระดับ Production ให้มีคุณภาพสูงสุด มีหลักฐานการตัดสินใจที่โปร่งใส ตรวจสอบได้จริง (Evidence-Driven) ไร้ Error 100% และปลอดภัยตามมาตรฐานสากล โดยเป็น **Universal Standard (Platform-Agnostic)** ที่ไม่ยึดติดกับค่ายใดค่ายหนึ่ง รองรับทั้ง **Antigravity (Agy), OpenAI Codex/ChatGPT, Anthropic Claude Code, Cursor, Windsurf, Aider, Roo Code และ OpenHands**
 
 > [!NOTE]
-> ### 📌 คำชี้แจงความเป็นอิสระของระบบ (Self-Contained & Non-Dependency Notice)
-> กระบวนการและสคริปต์ทั้งหมดในสกิลนี้ถูกออกแบบให้ทำงานได้ด้วยตัวเองแบบ **100% Self-Contained** ไม่มีการเชื่อมต่อ พึ่งพา หรือเรียกใช้งานสกิลภายนอกใดๆ ทั้งสิ้น:
-> - การเอ่ยถึงชื่อแนวคิด เช่น **Frontier Rounds Formula**, **Minimum Viable Architecture (MVA)**, **Fresh-Eyes Blind Spot Audit**, **Eight Aesthetic Anchors (frontend-design)**, **3-Tier Design Tokens Architecture & UX Intelligence (ui-ux-pro-max)**, หรือ **OWASP Top 10** เป็นการนำ **"กรอบแนวคิดและมาตรฐานทางทฤษฎี (Theoretical Frameworks)"** มาประยุกต์ใช้เป็นเกณฑ์ควบคุมคุณภาพเท่านั้น
-> - **Agent ไม่ต้องพยายามค้นหาหรือเรียกคำสั่ง Slash Command หรือเครื่องมือภายนอกใดๆ** คำสั่งและการตรวจสอบทั้งหมดทำงานผ่านสคริปต์ Python ในโฟลเดอร์ `scripts/` และกฎเกณฑ์ที่บรรจุอยู่ในเอกสารนี้อย่างครบถ้วนสมบูรณ์
+> สคริปต์จัดการสถานะและตรวจส่งมอบทำงานจากไฟล์ของ Skill นี้ งานที่เปลี่ยน UI ใช้ [คู่มือใช้ Skill สำหรับงาน UI](references/ui-workflow.md) เพื่อเรียก `frontend-design` และ `ui-ux-pro-max` ตามสภาพแวดล้อม คู่มือนี้มีวิธีติดตั้งและแนวทางที่ใช้ได้เมื่อแหล่งใดแหล่งหนึ่งไม่พร้อม
 
 ---
 
@@ -81,6 +78,7 @@ flowchart TD
 - **สำหรับงานสร้างระบบใหม่ หรือฟีเจอร์ขนาดใหญ่ (New System / Major Feature):** ดำเนินการครบทุกขั้นตอน 1.0 ถึง 7.0 และเคารพ Gate G1, G2, G3 อย่างเคร่งครัด
 - **สำหรับงานแก้บั๊กเล็ก หรืองานปรับแต่งเฉพาะจุด (Small Bug Fix / Minor Task):**
   - อนุญาตให้ทำแบบย่อ: ประเมินงาน (Step 1-2) ➔ วาง Test (Step 3.5) ➔ แก้ไขโค้ด (Step 4.0) ➔ รันเทสท์ยืนยัน (Step 5.0) ➔ ตรวจความปลอดภัย (Step 6.0) ➔ สรุปงาน (Step 7.0)
+  - งานที่เปลี่ยน UI ทำตาม [ขั้นตอนใช้ทั้งสอง Skill](references/ui-workflow.md) ในขั้น 4.0 ตามขอบเขตที่แก้ รวมถึงข้อความหรือระยะห่าง
   - สำหรับงานที่ไม่มี UI ให้บันทึกการยกเว้น G2 ตามรุ่นของขอบเขตงาน เช่น
 
     ```bash
@@ -157,16 +155,15 @@ Checkpoint schema 2 ยังอ่านได้และเก็บประ
 
 ---
 
-### 5. ปฏิบัติการออกแบบ UX/UI Prototype และ Design System ในขั้นตอนที่ 3.0 (Interactive Prototype & Delegation Engine) 🎨
+### 5. การใช้ Skill ในงานออกแบบและพัฒนา UI
 
-ขั้นตอนที่ 3.0 ไม่ใช่การเขียนโค้ด HTML ธรรมดา แต่คือการสร้าง **Living Interactive Prototype (`preview.html`)** เพื่อให้ผู้ใช้สัมผัสประสบการณ์จริงและเลือกทิศทางดีไซน์ (Design Direction) ก่อนลงมือพัฒนาจริง โดยผสานพลังระหว่าง **`frontend-design`** และ **`ui-ux-pro-max`** อย่างเป็นรูปธรรม:
+ใช้ `frontend-design` และ `ui-ux-pro-max` กับงานที่เปลี่ยน UI ทุกครั้ง รวมถึงการแก้ข้อความ สี หรือระยะห่าง งานที่มีขั้น 3.0 ใช้ทั้งสองแนวทางในการทำต้นแบบ `preview.html` งานที่ลงมือแก้ UI ใช้ในขั้น 4.0 กับโค้ดของโปรเจกต์
 
-#### 1. กลไกการมอบหมายงาน (Delegation & Execution Engine)
-*   **สำหรับสภาพแวดล้อมที่รองรับ Subagent (Antigravity IDE, Claude Code, Cursor):**
-    *   Agent หลักต้องทำการ **Explicit Delegation** แตก Subagent บทบาท `UI/UX Design Specialist`
-    *   ส่งมอบ Context สเปกของระบบ และสั่งการให้ดึงฐานข้อมูลความฉลาดจาก **`ui-ux-pro-max`** (ค้นหา Product Palette, Font Pairing, Component Layouts และ UX Guidelines) ผสานกับกรอบ **Eight Aesthetic Anchors** และ **Content Discipline** จาก **`frontend-design`**
-*   **สำหรับสภาพแวดล้อมแชทเดี่ยว (Single-Agent Fallback: ChatGPT Web, Standalone CLI):**
-    *   Agent หลักจะสวมบทบาท Lead UI/UX Designer ทันที (**Inline Deep Execution**) ดึงฐานความรู้ของทั้งสองสกิลมาประมวลผลและสร้างชิ้นงานด้วยมาตรฐานระดับโปรเดียวกัน 100%
+#### 1. เปิดใช้ Skill และนำผลไปใช้
+
+ทำตาม [คู่มือใช้ Skill สำหรับงาน UI](references/ui-workflow.md) ก่อนแก้ UI โดยตรวจ Skill ที่พร้อมใช้งาน เปิดไฟล์ `frontend-design` และรันการค้น `ui-ux-pro-max` ตามโจทย์ ใช้คำสั่งติดตั้งในคู่มือเมื่อตัวใดขาดและขอบเขตงานอนุญาตให้ติดตั้ง หากแหล่งใดใช้ไม่ได้ ให้ใช้แนวทางที่บรรจุในคู่มือกับส่วนที่ขาด แล้วบันทึกแหล่งที่ใช้จริงใน `.pipeline/DESIGN_SYSTEM.md`
+
+Agent หลักรับผิดชอบกระบวนการนี้และทวนผลใน UI จริง การใช้ Subagent ขึ้นกับเครื่องมือและการอนุญาตในสภาพแวดล้อม
 
 #### 2. ข้อกำหนดของ Interactive Prototype (`preview.html`)
 *   **Multi-Theme Switcher (ปุ่มสลับธีมหลากหลาย ขั้นต่ำ 3-4 แบบในหน้าเดียว):**
@@ -179,6 +176,7 @@ Checkpoint schema 2 ยังอ่านได้และเก็บประ
     *   เป็น Responsive Design ที่มี Meta Viewport และปุ่มสัมผัสไม่ต่ำกว่า 44x44px บน Mobile
 
 #### 3. เอกสารสถาปัตยกรรมดีไซน์ (`.pipeline/DESIGN_SYSTEM.md`)
+*   บันทึกแหล่งที่ใช้จากทั้งสอง Skill และการตัดสินใจที่นำไปใช้กับ UI จริงตาม [ตัวอย่างบันทึก](references/ui-workflow.md) งานเฉพาะจุดใช้สรุปสั้น ๆ
 *   บันทึกสเปกของ Design System ที่สร้างขึ้นอย่างเป็นระบบสำหรับทุกธีมที่มีให้เลือก:
     *   **Theme Specifications:** สรุป Anchor, อัตลักษณ์, และชุดสีของทุกธีม (Theme A, B, C, D...)
     *   **Primitive Tokens:** ชุดสีดิบ, ฟอนต์หลัก/ฟอนต์รอง, สเกล Spacing (ฐาน 4px/8px)

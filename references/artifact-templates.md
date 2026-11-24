@@ -156,6 +156,13 @@
 - **Typography Scale:** [e.g. 1.25 Major Third Scale]
 - **Spacing Scale:** [4px, 8px, 16px, 24px, 32px, 48px]
 - **Interactive States:** Default, Hover, Active, Focus-visible, Disabled ครบถ้วน
+
+## 4. แหล่งที่ใช้กับ UI จริง
+
+| ส่วนที่เปลี่ยน | frontend-design | ui-ux-pro-max | สิ่งที่นำไปใช้และผลตรวจ |
+| --- | --- | --- | --- |
+| [หน้าหรือ component] | [คำแนะนำที่ใช้หรือเหตุผลที่ใช้แนวทางในตัว] | [คำค้นและผลที่ใช้หรือเหตุผลที่ใช้แนวทางในตัว] | [จุดที่เปลี่ยนและหลักฐานการตรวจ] |
+
 ```
 
 ---
